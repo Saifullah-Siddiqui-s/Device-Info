@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Intelligence Dashboard</title>
+    <style>
+      :root {
+        --primary: #6e48aa;
+        --secondary: #9d50bb;
+        --accent: #4776e6;
+        --dark: #1a1a2e;
+        --light: #f8f9fa;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--dark), #16213e);
+        color: var(--light);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        padding: 2rem 0;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(110, 72, 170, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+        z-index: -1;
+        animation: rotate 20s linear infinite;
+      }
+
+      @keyframes rotate {
+        from {
+          transform: rotate(0deg);
+        }
+
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .card-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        border-radius: 50%;
+        margin-right: 1rem;
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+
+      .info-item {
+        margin-bottom: 0.75rem;
+      }
+
+      .info-label {
+        font-size: 0.85rem;
+        opacity: 0.7;
+        margin-bottom: 0.25rem;
+      }
+
+      .info-value {
+        font-size: 1.1rem;
+        font-weight: 500;
+        word-break: break-all;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: white;
+        box-shadow: 0 4px 15px rgba(110, 72, 170, 0.4);
+        margin-top: 1rem;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(110, 72, 170, 0.6);
+      }
+
+      .map-container {
+        height: 300px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .progress-bar {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        margin-top: 1rem;
+        overflow: hidden;
+      }
+
+      .progress {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        width: 0%;
+        transition: width 1s ease;
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 2rem;
+        padding: 1.5rem;
+        font-size: 0.9rem;
+        opacity: 0.7;
+      }
+
+      /* Animated background elements */
+      .bg-elements {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .bg-element {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 50%;
+      }
+
+      @media (max-width: 768px) {
+        .dashboard {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  </head>
+  <body>
+    <div class="bg-elements" id="bgElements"></div>
+    <div class="container">
+      <header>
+        <h1>Device Intelligence Dashboard</h1>
+        <p class="subtitle">Comprehensive analysis of your device's digital footprint</p>
+      </header>
+      <div class="dashboard">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="4"></circle>
+                <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+                <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+                <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+                <line x1="14.83" y1="9.17" x2="18.36" y2="5.64"></line>
+                <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
+              </svg>
+            </div>
+            <h2 class="card-title">Location Information</h2>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Latitude / Longitude</div>
+            <div class="info-value" id="coordinates">Not available (permission required)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Approximate Address</div>
+            <div class="info-value" id="address">Not available</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Accuracy</div>
+            <div class="info-value" id="accuracy">Not available</div>
+          </div>
+          <div class="map-container">
+            <div id="map"></div>
+          </div>
+          <button id="getLocationBtn" class="btn">
+            <span id="locationBtnText">Get My Location</span>
+            <span id="locationLoading" class="loading hidden"></span>
+          </button>
+          <div class="progress-bar" id="locationProgressBar">
+            <div class="progress" id="locationProgress"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+            </div>
+            <h2 class="card-title">Network Information</h2>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Public IP Address</div>
+            <div class="info-value" id="ipAddress">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">IP Location</div>
+            <div class="info-value" id="ipLocation">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">ISP</div>
+            <div class="info-value" id="isp">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Network Type</div>
+            <div class="info-value" id="connectionType">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Effective Connection</div>
+            <div class="info-value" id="effectiveType">Detecting...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+              </svg>
+            </div>
+            <h2 class="card-title">Device Information</h2>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Device Type</div>
+            <div class="info-value" id="deviceType">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Operating System</div>
+            <div class="info-value" id="os">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Browser</div>
+            <div class="info-value" id="browser">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Screen Resolution</div>
+            <div class="info-value" id="screenResolution">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Device Memory</div>
+            <div class="info-value" id="deviceMemory">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">CPU Cores</div>
+            <div class="info-value" id="cpuCores">Detecting...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a10 10 0 0 0-10 10 10 10 0 0 0 20 0 10 10 0 0 0-10-10z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+                <path d="M12 21.8c-2.2 0-3.5-.2-5-.7-1.5-.5-2.6-1.5-3-3-.5-1.5-.7-2.8-.7-5s.2-3.5.7-5c.4-1.5 1.5-2.6 3-3 1.5-.5 2.8-.7 5-.7s3.5.2 5 .7c1.5.4 2.6 1.5 3 3 .5 1.5.7 2.8.7 5s-.2 3.5-.7 5c-.4 1.5-1.5 2.6-3 3-1.5.5-2.8.7-5 .7z"></path>
+              </svg>
+            </div>
+            <h2 class="card-title">Advanced Details</h2>
+          </div>
+          <div class="info-item">
+            <div class="info-label">User Agent</div>
+            <div class="info-value" id="userAgent">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Timezone</div>
+            <div class="info-value" id="timezone">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Language</div>
+            <div class="info-value" id="language">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Current Time</div>
+            <div class="info-value" id="currentTime">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Cookies Enabled</div>
+            <div class="info-value" id="cookiesEnabled">Detecting...</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Do Not Track</div>
+            <div class="info-value" id="doNotTrack">Detecting...</div>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <p>This website uses client-side JavaScript to detect device information. No data is stored on any server.</p>
+        <p>For privacy reasons, some information may be unavailable without explicit user permission.</p>
+      </footer>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+      // Create animated background elements
+      function createBGElements() {
+        const bgElements = document.getElementById('bgElements');
+        const count = 15;
+        for (let i = 0; i < count; i++) {
+          const element = document.createElement('div');
+          element.classList.add('bg-element');
+          const size = Math.random() * 200 + 50;
+          const posX = Math.random() * 100;
+          const posY = Math.random() * 100;
+          const opacity = Math.random() * 0.05 + 0.01;
+          const duration = Math.random() * 20 + 10;
+          const delay = Math.random() * 5;
+          element.style.width = `${size}px`;
+          element.style.height = `${size}px`;
+          element.style.left = `${posX}%`;
+          element.style.top = `${posY}%`;
+          element.style.opacity = opacity;
+          element.style.animation = `float ${duration}s ease-in-out ${delay}s infinite alternate`;
+          bgElements.appendChild(element);
+        }
+      }
+      // Add floating animation to CSS
+      const style = document.createElement('style');
+      style.textContent = `
+            @keyframes float {
+                0% { transform: translate(0, 0) rotate(0deg); }
+                50% { transform: translate(50px, 50px) rotate(180deg); }
+                100% { transform: translate(-50px, -50px) rotate(360deg); }
+            }
+        `;
+      document.head.appendChild(style);
+      // Get device information
+      function getDeviceInfo() {
+        // Network connection info
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (connection) {
+          document.getElementById('connectionType').textContent = connection.type || 'Unknown';
+          document.getElementById('effectiveType').textContent = connection.effectiveType || 'Unknown';
+        }
+        // Device memory
+        if (navigator.deviceMemory) {
+          document.getElementById('deviceMemory').textContent = `${navigator.deviceMemory} GB`;
+        }
+        // CPU cores
+        if (navigator.hardwareConcurrency) {
+          document.getElementById('cpuCores').textContent = navigator.hardwareConcurrency;
+        }
+        // Screen resolution
+        const screenResolution = `${window.screen.width} × ${window.screen.height}`;
+        document.getElementById('screenResolution').textContent = screenResolution;
+        // Timezone
+        document.getElementById('timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        // Language
+        document.getElementById('language').textContent = navigator.language;
+        // Current time
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+        // Cookies enabled
+        document.getElementById('cookiesEnabled').textContent = navigator.cookieEnabled ? 'Yes' : 'No';
+        // Do Not Track
+        document.getElementById('doNotTrack').textContent = navigator.doNotTrack || 'Not specified';
+      }
+      // Update current time
+      function updateCurrentTime() {
+        const now = new Date();
+        document.getElementById('currentTime').textContent = now.toLocaleString();
+      }
+      // Detect device type
+      function detectDeviceType() {
+        const userAgent = navigator.userAgent;
+        let deviceType = 'Unknown';
+        if (/Mobi|Android|iPhone|iPad|iPod/i.test(userAgent)) {
+          deviceType = 'Mobile';
+          if (/iPad|tablet/i.test(userAgent)) {
+            deviceType = 'Tablet';
+          }
+        } else {
+          deviceType = 'Desktop';
+        }
+        document.getElementById('deviceType').textContent = deviceType;
+      }
+      // Detect operating system
+      function detectOS() {
+        const userAgent = navigator.userAgent;
+        let os = 'Unknown';
+        if (/Windows/i.test(userAgent)) {
+          os = 'Windows';
+        } else if (/Macintosh|Mac OS X/i.test(userAgent)) {
+          os = 'MacOS';
+        } else if (/Linux/i.test(userAgent)) {
+          os = 'Linux';
+        } else if (/Android/i.test(userAgent)) {
+          os = 'Android';
+        } else if (/iOS|iPhone|iPad|iPod/i.test(userAgent)) {
+          os = 'iOS';
+        }
+        document.getElementById('os').textContent = os;
+      }
+      // Detect browser
+      function detectBrowser() {
+        const userAgent = navigator.userAgent;
+        let browser = 'Unknown';
+        if (/Chrome/i.test(userAgent) && !/Edge/i.test(userAgent)) {
+          browser = 'Chrome';
+        } else if (/Firefox/i.test(userAgent)) {
+          browser = 'Firefox';
+        } else if (/Safari/i.test(userAgent) && !/Chrome/i.test(userAgent)) {
+          browser = 'Safari';
+        } else if (/Edge/i.test(userAgent)) {
+          browser = 'Edge';
+        } else if (/Opera|OPR/i.test(userAgent)) {
+          browser = 'Opera';
+        } else if (/Trident/i.test(userAgent)) {
+          browser = 'Internet Explorer';
+        }
+        document.getElementById('browser').textContent = browser;
+        document.getElementById('userAgent').textContent = userAgent;
+      }
+      // Get IP information
+      function getIPInfo() {
+        fetch('https://ipapi.co/json/').then(response => response.json()).then(data => {
+          document.getElementById('ipAddress').textContent = data.ip || 'Unknown';
+          document.getElementById('ipLocation').textContent = `${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}`;
+          document.getElementById('isp').textContent = data.org || 'Unknown';
+        }).catch(error => {
+          console.error('Error fetching IP info:', error);
+          document.getElementById('ipAddress').textContent = 'Error fetching data';
+        });
+      }
+      // Initialize map
+      let map;
+      let marker;
+
+      function initMap(lat, lng) {
+        if (map) {
+          map.remove();
+        }
+        map = L.map('map').setView([lat, lng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy;  < a href = "https://www.openstreetmap.org/copyright" > OpenStreetMap < /a> contributors'
+        }).addTo(map);
+        if (marker) {
+          map.removeLayer(marker);
+        }
+        marker = L.marker([lat, lng]).addTo(map);
+      }
+      // Get user location
+      function getLocation() {
+        const btn = document.getElementById('getLocationBtn');
+        const btnText = document.getElementById('locationBtnText');
+        const loading = document.getElementById('locationLoading');
+        const progressBar = document.getElementById('locationProgressBar');
+        const progress = document.getElementById('locationProgress');
+        btn.disabled = true;
+        btnText.textContent = 'Detecting...';
+        loading.classList.remove('hidden');
+        progressBar.classList.remove('hidden');
+        // Simulate progress for better UX
+        let progressWidth = 0;
+        const progressInterval = setInterval(() => {
+          progressWidth += 5;
+          progress.style.width = `${progressWidth}%`;
+          if (progressWidth >= 100) {
+            clearInterval(progressInterval);
+          }
+        }, 200);
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
+              const accuracy = position.coords.accuracy;
+              document.getElementById('coordinates').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              document.getElementById('accuracy').textContent = `${accuracy.toFixed(2)} meters`;
+              initMap(lat, lng);
+              // Reverse geocoding to get address
+              fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`).then(response => response.json()).then(data => {
+                const address = data.display_name || 'Address not available';
+                document.getElementById('address').textContent = address;
+              }).catch(error => {
+                console.error('Error fetching address:', error);
+                document.getElementById('address').textContent = 'Error fetching address';
+              });
+              btnText.textContent = 'Location Found';
+              loading.classList.add('hidden');
+              progress.style.width = '100%';
+              setTimeout(() => {
+                progressBar.classList.add('hidden');
+                btn.disabled = false;
+                btnText.textContent = 'Update Location';
+              }, 1000);
+            },
+            (error) => {
+              console.error('Geolocation error:', error);
+              let errorMessage = 'Error getting location';
+              switch (error.code) {
+                case error.PERMISSION_DENIED:
+                  errorMessage = 'Permission denied. Please enable location services.';
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  errorMessage = 'Location information unavailable.';
+                  break;
+                case error.TIMEOUT:
+                  errorMessage = 'Request timed out.';
+                  break;
+              }
+              document.getElementById('coordinates').textContent = errorMessage;
+              btnText.textContent = 'Try Again';
+              loading.classList.add('hidden');
+              progress.style.width = '100%';
+              progress.style.backgroundColor = '#ff6b6b';
+              setTimeout(() => {
+                progressBar.classList.add('hidden');
+                btn.disabled = false;
+              }, 1000);
+            }, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+        } else {
+          document.getElementById('coordinates').textContent = 'Geolocation is not supported by this browser.';
+          btnText.textContent = 'Not Supported';
+          loading.classList.add('hidden');
+          progress.style.width = '100%';
+          progress.style.backgroundColor = '#ff6b6b';
+          setTimeout(() => {
+            progressBar.classList.add('hidden');
+            btn.disabled = false;
+          }, 1000);
+        }
+      }
+      // Initialize everything when DOM is loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        createBGElements();
+        getDeviceInfo();
+        detectDeviceType();
+        detectOS();
+        detectBrowser();
+        getIPInfo();
+        // Set up location button
+        document.getElementById('getLocationBtn').addEventListener('click', getLocation);
+        // Initialize map placeholder
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+          mapContainer.innerHTML = ' < div class = "map-placeholder" > Location data will appear here < /div>';
+        }
+      });
+    </script>
+  </body>
+</html>
